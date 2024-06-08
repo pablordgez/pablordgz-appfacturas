@@ -1,9 +1,9 @@
 fx_version "cerulean"
 game "gta5"
 
-title "LB Phone - App Template"
-description "A template for creating apps for the LB Phone."
-author "Breze & Loaf"
+title "pablordgz appfacturas"
+description "billing app for lbphone and pefcl"
+author "pablordgz"
 
 client_script "client.lua"
 server_script "server.lua"
