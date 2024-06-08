@@ -6,6 +6,17 @@ AddEventHandler('pablordgz-appfacturas:requestFacturas', function()
     TriggerClientEvent('pablordgz-appfacturas:openApp', src, facturas)
 end)
 
+function payMoney(xPlayer, xTarget, src, result, invoice)
+    exports.pefcl:addBankBalanceByIdentifier(src, {identifier = result.receiverAccountIdentifier, amount = result.amount, message = "Factura pagada"})
+    MySQL.update('UPDATE pefcl_invoices SET status = ? WHERE id = ?', {"PAID", invoice.id})
+    xPlayer.showNotification('Has pagado la factura', "bank")
+    local newBills = exports.pefcl:getInvoices(src).data
+    TriggerClientEvent('pablordgz-appfacturas:billPaid', src, invoice.id, newBills)
+    if xTarget then
+        xTarget.showNotification('Te han pagado una factura', "bank")
+    end
+end
+
 RegisterNetEvent('pablordgz-appfacturas:payBill')
 AddEventHandler('pablordgz-appfacturas:payBill', function(billId)
     
@@ -23,26 +34,10 @@ AddEventHandler('pablordgz-appfacturas:payBill', function(billId)
                         local xTarget = ESX.GetPlayerFromIdentifier(result.fromIdentifier)
                         if xPlayer.getMoney() >= result.amount then
                             xPlayer.removeMoney(result.amount, "Factura")
-                            exports.pefcl:addBankBalanceByIdentifier(src, {identifier = result.receiverAccountIdentifier, amount = result.amount, message = "Factura pagada"})
-                            MySQL.update('UPDATE pefcl_invoices SET status = ? WHERE id = ?', {"PAID", invoice.id})
-                            xPlayer.showNotification('Has pagado la factura', "bank")
-                            local newBills = exports.pefcl:getInvoices(src).data
-                            TriggerClientEvent('pablordgz-appfacturas:billPaid', src, invoice.id, newBills)
-                            if xTarget then
-                                xTarget.showNotification('Te han pagado una factura', "bank")
-                            end
+                            payMoney(xPlayer, xTarget, src, result, invoice)
                         elseif xPlayer.getAccount('bank').money >= result.amount then
                             xPlayer.removeAccountMoney('bank', result.amount, "Factura")
-                            exports.pefcl:addBankBalanceByIdentifier(src, {identifier = result.receiverAccountIdentifier, amount = result.amount, message = "Factura pagada"})
-                            MySQL.update('UPDATE pefcl_invoices SET status = ? WHERE id = ?', {"PAID", invoice.id})
-                            xPlayer.showNotification('Has pagado la factura', "bank")
-                            Citizen.Wait(150)
-                            local newBills = exports.pefcl:getInvoices(src).data
-                            print(#newBills.invoices)
-                            TriggerClientEvent('pablordgz-appfacturas:billPaid', src, invoice.id, newBills)
-                            if xTarget then
-                                xTarget.showNotification('Te han pagado una factura', "bank")
-                            end
+                            payMoney(xPlayer, xTarget, src, result, invoice)
                         else
                             xPlayer.showNotification('No tienes suficiente dinero', "bank")
                         end
